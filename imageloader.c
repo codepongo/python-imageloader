@@ -252,7 +252,9 @@ stbex_cube_get_sample(stbex_cube *cube, stbex_pixel *samples, stbex_pixel *resul
 
         if (length_r < 16 && length_g < 16 && length_b < 16) {
             *(results + (*nresults)++) = stbex_pixel_new((cube->min_r + cube->max_r) / 2, (cube->min_g + cube->max_g) / 2, (cube->min_b + cube->max_b) / 2, 0); 
+/*
             printf("(%d, %d, %d)\n", (cube->min_r + cube->max_r) / 2, (cube->min_g + cube->max_g) / 2, (cube->min_b + cube->max_b) / 2);
+*/
         } else {
             *(results + (*nresults)++) = stbex_pixel_new(cube->min_r, cube->min_g, cube->min_b, 0); 
             *(results + (*nresults)++) = stbex_pixel_new(cube->max_r, cube->min_g, cube->min_b, 0); 
@@ -262,6 +264,7 @@ stbex_cube_get_sample(stbex_cube *cube, stbex_pixel *samples, stbex_pixel *resul
             *(results + (*nresults)++) = stbex_pixel_new(cube->min_r, cube->max_g, cube->max_b, 0); 
             *(results + (*nresults)++) = stbex_pixel_new(cube->max_r, cube->min_g, cube->max_b, 0); 
             *(results + (*nresults)++) = stbex_pixel_new(cube->max_r, cube->max_g, cube->max_b, 0); 
+/*
             printf("(%d, %d, %d) - (%d, %d, %d) => %ld\n",
                             cube->min_r,
                             cube->min_g,
@@ -270,6 +273,7 @@ stbex_cube_get_sample(stbex_cube *cube, stbex_pixel *samples, stbex_pixel *resul
                             cube->max_g,
                             cube->max_b,
                             cube->npixels);
+*/
         }
     }
 }
@@ -341,7 +345,7 @@ make_palette(unsigned char *data, int x, int y, int n, int c)
 {
     int i;
     unsigned char *palette;
-    int sample_count = 25600;
+    int sample_count = 256;
     stbex_pixel *sample;
     stbex_cube *cube;
     int nresult = 0;
@@ -359,7 +363,9 @@ make_palette(unsigned char *data, int x, int y, int n, int c)
     stbex_cube_get_sample(cube, sample, (stbex_pixel *)results, &nresult);
     free(sample);
 
+/*
     printf("[%d -> %d]\n", sample_count, count); fflush(0);
+*/
 
     palette = malloc(c * n);
     for (i = 0; i < c; i++) {
