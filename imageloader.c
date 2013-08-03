@@ -317,6 +317,7 @@ get_sample(unsigned char *data, int width, int height, int depth, int *count)
 {
     int i, j;
     int n = width * height / *count;
+    int index;
     stbex_pixel *result = malloc(sizeof(stbex_pixel) * *count);
     stbex_pixel p;
     char histgram[1 << 15];
@@ -324,8 +325,10 @@ get_sample(unsigned char *data, int width, int height, int depth, int *count)
     memset(histgram, 0, sizeof(histgram));
 
     for (i = 0; i < *count; i++) {
-        p = *zigzag_pget(data, i * n, width, depth);
-        histgram[(p.r >> 3) << 10 | (p.g >> 3) << 5 | p.b >> 3] = 1;
+        /* p = *zigzag_pget(data, i * n, width, depth); */
+        p = *pget(data, i * n, depth);
+        index = (p.r >> 3) << 10 | (p.g >> 3) << 5 | p.b >> 3;
+        histgram[index] = 1;
     }
 
     for (i = 0, j = 0; i < sizeof(histgram); i++) {
