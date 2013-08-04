@@ -12,6 +12,7 @@ setup(name                  = 'imageloader',
       long_description      = open("README.rst").read(),
       ext_modules           = [Extension('imageloader', sources = ['imageloader.c'])],
       classifiers           = ['Development Status :: 4 - Beta',
+                               'Intended Audience :: Developers',
                                'License :: OSI Approved :: GNU General Public License (GPL)',
                                'Programming Language :: Python'
                                ],
