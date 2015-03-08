@@ -551,7 +551,7 @@ Image_dealloc(Image *self)
         self->original = NULL;
     }
 
-    self->ob_type->tp_free((PyObject*)self);
+    Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 /** initializer */
