@@ -783,6 +783,7 @@ static PyTypeObject ImageType = {
 static PyObject *
 open(PyObject *self, PyObject *args)
 {
+    printf("%s\n", __FUNCTION__);
     int x, y, n;
     PyObject *file;
     PyObject *chunk;
@@ -860,6 +861,7 @@ static PyMethodDef methods[] = {
 /** module entry point */
 extern void initimageloader(void)
 {
+    printf("%s\n", __FUNCTION__);
     PyObject *m = Py_InitModule3("imageloader", methods, imageloader_doc);
     if (PyType_Ready(&ImageType) < 0) {
         return;

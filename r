@@ -1,0 +1,1 @@
+gcc imageloader.c -shared -lpython2.7 -L/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7 -I /System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7  -o imageloader.so && python test.py
