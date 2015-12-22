@@ -5,7 +5,10 @@
 #include <stdint.h>
 #include <memory.h>
 #include <math.h>
-#include "stb_image.c"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
 
 /*****************************************************************************
  *
@@ -653,7 +656,22 @@ Image_convert(PyObject *self, PyObject *args, PyObject *kwds)
 
     return (PyObject *)dest;
 }
- 
+
+static PyObject *
+Image_write(PyObject* self, PyObject* args) {
+    Image* img = (Image*)self;
+    const char* file;
+    printf("%s\n", __FUNCTION__);
+    if (!PyArg_ParseTuple(args, "s", &file)) {
+        printf("%s - paramater error", __FUNCTION__);
+        return NULL;
+    }
+    printf("%p (w:%d h:%d)\n", img->data, img->width, img->height);
+    int r = stbi_write_png(file, img->width, img->height, STBI_default, img->data, 0);
+    printf("%d\n", r);
+    return self;
+}
+
 static PyObject *
 Image_resize(PyObject *self, PyObject *args)
 {
@@ -672,7 +690,6 @@ Image_resize(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "(ii)", &width, &height)) {
         return NULL;
     }
-
     dest = (Image *)type->tp_alloc(type, 0);
     if (dest == NULL) {
         return NULL;
@@ -720,6 +737,7 @@ static PyMethodDef Image_methods[] = {
     {"getpalette", (PyCFunction)Image_getpalette, METH_NOARGS, "return palette data" },
     {"convert", (PyCFunction)Image_convert, METH_KEYWORDS, "convert image data" },
     {"resize", Image_resize, METH_VARARGS, "resize image data" },
+    {"write", Image_write, METH_VARARGS, "save image to file" },
     { NULL }  /* Sentinel */
 };
 
@@ -806,6 +824,7 @@ open(PyObject *self, PyObject *args)
         filename = PyString_AsString(file);
         data = stbi_load(filename, &x, &y, &n, STBI_default);
         if (data == NULL) {
+            printf("%s %d\n", __FUNCTION__, __LINE__);
             return NULL;
         }
     } else if (strcmp(tp_name, "cStringIO.StringI") == 0) {
