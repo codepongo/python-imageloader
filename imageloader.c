@@ -658,16 +658,15 @@ Image_convert(PyObject *self, PyObject *args, PyObject *kwds)
 }
 
 static PyObject *
-Image_write(PyObject* self, PyObject* args) {
+Image_write_png(PyObject* self, PyObject* args) {
     Image* img = (Image*)self;
     const char* file;
-    printf("%s\n", __FUNCTION__);
     if (!PyArg_ParseTuple(args, "s", &file)) {
-        printf("%s - paramater error", __FUNCTION__);
+        printf("%s(%s %d) - paramater error", __FUNCTION__, __FILE__, __LINE__);
         return NULL;
     }
-    printf("%p (w:%d h:%d)\n", img->data, img->width, img->height);
-    int r = stbi_write_png(file, img->width, img->height, STBI_default, img->data, 0);
+    printf("%p (w:%d h:%d d:%d)\n", img->original, img->width, img->height, img->depth);
+    int r = stbi_write_png(file, img->width, img->height, img->depth, img->original, 0);
     printf("%d\n", r);
     return self;
 }
@@ -737,7 +736,7 @@ static PyMethodDef Image_methods[] = {
     {"getpalette", (PyCFunction)Image_getpalette, METH_NOARGS, "return palette data" },
     {"convert", (PyCFunction)Image_convert, METH_KEYWORDS, "convert image data" },
     {"resize", Image_resize, METH_VARARGS, "resize image data" },
-    {"write", Image_write, METH_VARARGS, "save image to file" },
+    {"write", Image_write_png, METH_VARARGS, "save image to file as png format" },
     { NULL }  /* Sentinel */
 };
 
@@ -801,7 +800,6 @@ static PyTypeObject ImageType = {
 static PyObject *
 open(PyObject *self, PyObject *args)
 {
-    printf("%s\n", __FUNCTION__);
     int x, y, n;
     PyObject *file;
     PyObject *chunk;
@@ -824,7 +822,7 @@ open(PyObject *self, PyObject *args)
         filename = PyString_AsString(file);
         data = stbi_load(filename, &x, &y, &n, STBI_default);
         if (data == NULL) {
-            printf("%s %d\n", __FUNCTION__, __LINE__);
+            printf("%s(%s %d) - stbi_load() is failure\n", __FUNCTION__, __FILE__, __LINE__);
             return NULL;
         }
     } else if (strcmp(tp_name, "cStringIO.StringI") == 0) {
@@ -842,21 +840,21 @@ open(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    palette = make_palette(data, x, y, n, colors);
-    imagedata = apply_palette(data, x, y, n, palette, colors, 1);
+    //palette = make_palette(data, x, y, n, colors);
+    //imagedata = apply_palette(data, x, y, n, palette, colors, 1);
 
     Image *pimage = (Image *)ImageType.tp_alloc(&ImageType, 0);
     if (pimage == NULL) {
         return NULL;
     }
 
-    pimage->data = PyByteArray_FromStringAndSize((char const *)imagedata, x * y);
-    pimage->palette = PyByteArray_FromStringAndSize((char const *)palette, colors * 3);
+    //pimage->data = PyByteArray_FromStringAndSize((char const *)imagedata, x * y);
+    //pimage->palette = PyByteArray_FromStringAndSize((char const *)palette, colors * 3);
     pimage->original = data;
-    if (pimage->data == NULL) {
-        Py_DECREF(pimage);
-        return NULL;
-    }
+    //if (pimage->data == NULL) {
+    //    Py_DECREF(pimage);
+    //    return NULL;
+    //}
     pimage->width = x;
     pimage->height = y;
     pimage->depth = n;
@@ -864,8 +862,8 @@ open(PyObject *self, PyObject *args)
     pimage->expected_height = y;
     pimage->expected_depth = n;
 
-    free(palette);
-    free(imagedata);
+    //free(palette);
+    //free(imagedata);
 
     return (PyObject *)pimage;
 }
@@ -880,7 +878,6 @@ static PyMethodDef methods[] = {
 /** module entry point */
 extern void initimageloader(void)
 {
-    printf("%s\n", __FUNCTION__);
     PyObject *m = Py_InitModule3("imageloader", methods, imageloader_doc);
     if (PyType_Ready(&ImageType) < 0) {
         return;
