@@ -7,6 +7,8 @@
 #include <math.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#define STB_IMAGE_RESIZE_IMPLEMENTATION
+#include "stb_image_resize.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
@@ -662,12 +664,58 @@ Image_write_png(PyObject* self, PyObject* args) {
     Image* img = (Image*)self;
     const char* file;
     if (!PyArg_ParseTuple(args, "s", &file)) {
-        printf("%s(%s %d) - paramater error", __FUNCTION__, __FILE__, __LINE__);
+        printf("%s(%s %d) - paramater error\n", __FUNCTION__, __FILE__, __LINE__);
         return NULL;
     }
     int r = stbi_write_png(file, img->width, img->height, img->depth, img->original, 0);
     return self;
 }
+
+static PyObject *
+Image_cut(PyObject *self, PyObject *args)
+{
+    PyTypeObject *type = (PyTypeObject *)PyObject_Type(self);
+
+    Image *src = (Image *)self;
+    Image *dest;
+    unsigned char *data;
+    int x, y, width, height;
+    int gx, gy;
+    int rx, ry;
+    const size_t colors = 256;
+    unsigned char *palette;
+    stbex_pixel *p;
+
+    if (!PyArg_ParseTuple(args, "iiii", &x, &y, &width, &height)) {
+        printf("%s(%s %d) - paramater error\n", __FUNCTION__, __FILE__, __LINE__);
+        return NULL;
+    }
+    dest = (Image *)type->tp_alloc(type, 0);
+    if (dest == NULL) {
+        printf("%s(%s %d) - failure to alloc image\n", __FUNCTION__, __FILE__, __LINE__);
+        return NULL;
+    }
+    dest->depth = src->depth;
+    dest->original = malloc(width * height * src->depth);
+    for (gy = 0; gy < height; ++gy) {
+        for (gx = 0; gx < width; ++gx) {
+            p = pget(src->original, src->width * (y + gy) + x + gx, src->depth);
+            //printf("%d %d\n", x+gx, y + gy);
+            pset(dest->original, width * gy + gx, dest->depth, p);
+            //printf("%d %d - %d %d\n", gx, gy, width, height);
+        }
+    }
+    dest->width = width;
+    dest->height = height;
+    dest->expected_width = src->expected_width;
+    dest->expected_height = src->expected_height;
+    dest->expected_depth = src->expected_depth;
+
+    return (PyObject *)dest;
+}
+
+
+
 
 static PyObject *
 Image_resize(PyObject *self, PyObject *args)
@@ -685,28 +733,26 @@ Image_resize(PyObject *self, PyObject *args)
     unsigned char *palette;
     stbex_pixel *p;
 
-    if (!PyArg_ParseTuple(args, "(ii)", &width, &height)) {
-        printf("%s(%s %d) - paramater error", __FUNCTION__, __FILE__, __LINE__);
+    if (!PyArg_ParseTuple(args, "ii", &width, &height)) {
+        printf("%s(%s %d) - paramater error\n", __FUNCTION__, __FILE__, __LINE__);
         return NULL;
     }
-    printf("w:%d h:%d\n", width, height);
     dest = (Image *)type->tp_alloc(type, 0);
     if (dest == NULL) {
-        printf("%s(%s %d) - failure to alloc image", __FUNCTION__, __FILE__, __LINE__);
+        printf("%s(%s %d) - failure to alloc image\n", __FUNCTION__, __FILE__, __LINE__);
         return NULL;
     }
     dest->depth = src->depth;
     dest->original = malloc(width * height * src->depth);
-
-    for (gy = 0; gy <= height; ++gy) {
+    int rlt = stbir_resize_uint8(src->original, src->width, src->height, 0, dest->original, width, height, 0, dest->depth);
+    /*for (gy = 0; gy <= height; ++gy) {
         ry = (src->height - 1) * gy / height;
         for (gx = 0; gx <= width; ++gx) {
             rx = (src->width - 1) * gx / width;
             p = pget(src->original, src->width * ry + rx, src->depth);
             pset(dest->original, width * gy + gx, dest->depth, p);
         }
-    }
-
+    }*/
     //palette = make_palette(dest->original, width, height, src->depth, colors);
     //if (!palette) {
     //    return NULL;
@@ -737,6 +783,7 @@ static PyMethodDef Image_methods[] = {
     {"getpalette", (PyCFunction)Image_getpalette, METH_NOARGS, "return palette data" },
     {"convert", (PyCFunction)Image_convert, METH_KEYWORDS, "convert image data" },
     {"resize", Image_resize, METH_VARARGS, "resize image data" },
+    {"cut", Image_cut, METH_VARARGS, "cut image" },
     {"write", Image_write_png, METH_VARARGS, "save image to file as png format" },
     { NULL }  /* Sentinel */
 };
