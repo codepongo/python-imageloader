@@ -11,9 +11,10 @@ try:
     #img = img.resize(256, 256)
     #img.write_png('des.png')
     img = imageloader.open('12306.jpg')
-    #char = img.cut(0,0,293,30)
-    #char.write('char.png')
-    for x in range(0, 3):
+    char = img.cut(0,0,293,30)
+    char.write('char.png')
+    img = imageloader.open('12306.jpg')
+    for x in range(0, 4):
         for y in range(0, 2):
             sub_img(img,x,y)
 
