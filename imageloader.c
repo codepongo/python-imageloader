@@ -665,15 +665,14 @@ Image_write_png(PyObject* self, PyObject* args) {
         printf("%s(%s %d) - paramater error", __FUNCTION__, __FILE__, __LINE__);
         return NULL;
     }
-    printf("%p (w:%d h:%d d:%d)\n", img->original, img->width, img->height, img->depth);
     int r = stbi_write_png(file, img->width, img->height, img->depth, img->original, 0);
-    printf("%d\n", r);
     return self;
 }
 
 static PyObject *
 Image_resize(PyObject *self, PyObject *args)
 {
+    printf("%s\n", __FUNCTION__);
     PyTypeObject *type = (PyTypeObject *)PyObject_Type(self);
 
     Image *src = (Image *)self;
@@ -687,13 +686,15 @@ Image_resize(PyObject *self, PyObject *args)
     stbex_pixel *p;
 
     if (!PyArg_ParseTuple(args, "(ii)", &width, &height)) {
+        printf("%s(%s %d) - paramater error", __FUNCTION__, __FILE__, __LINE__);
         return NULL;
     }
+    printf("w:%d h:%d\n", width, height);
     dest = (Image *)type->tp_alloc(type, 0);
     if (dest == NULL) {
+        printf("%s(%s %d) - failure to alloc image", __FUNCTION__, __FILE__, __LINE__);
         return NULL;
     }
-
     dest->depth = src->depth;
     dest->original = malloc(width * height * src->depth);
 
@@ -706,21 +707,21 @@ Image_resize(PyObject *self, PyObject *args)
         }
     }
 
-    palette = make_palette(dest->original, width, height, src->depth, colors);
-    if (!palette) {
-        return NULL;
-    }
-    data = apply_palette(dest->original, width, height, src->depth, palette, colors, 1);
-    if (!data) {
-        free(palette);
-        return NULL;
-    }
+    //palette = make_palette(dest->original, width, height, src->depth, colors);
+    //if (!palette) {
+    //    return NULL;
+    //}
+    //data = apply_palette(dest->original, width, height, src->depth, palette, colors, 1);
+    //if (!data) {
+    //    free(palette);
+    //    return NULL;
+    //}
 
     // TODO: use direct buffer object insted of PyByteArray
-    dest->data = PyByteArray_FromStringAndSize((char const *)data, width * height);
-    dest->palette = PyByteArray_FromStringAndSize((char const *)palette, colors * 3);
-    free(palette);
-    free(data);
+    //dest->data = PyByteArray_FromStringAndSize((char const *)data, width * height);
+    //dest->palette = PyByteArray_FromStringAndSize((char const *)palette, colors * 3);
+    //free(palette);
+    //free(data);
 
     dest->width = width;
     dest->height = height;

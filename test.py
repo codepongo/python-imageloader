@@ -1,8 +1,9 @@
 import imageloader
 try:
-    img = imageloader.open('icon1024.png')
-    #img = img.resize((512,512))
-    img.write('icon512.png')
+    img = imageloader.open('src.png')
+    #img = img.resize((512, 512))
+    img.write('des.png')
+
 except:
     print('error')
 
